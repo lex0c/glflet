@@ -20,16 +20,19 @@ window.L.glflet = (map) => {
   layer.canvas.width = canvas.clientWidth;
   layer.canvas.height = canvas.clientHeight;
 
-  const gl = canvas.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
 
   if (!gl) {
     console.error('WebGL2 not available');
   }
 
+  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+  gl.enable(gl.BLEND);
+  //gl.disable(gl.DEPTH_TEST);
+
   /**
    * Creates and compiles a shader.
    *
-   * @param {!WebGLRenderingContext} gl The WebGL Context.
    * @param {string} shaderSource The GLSL source code for the shader.
    * @param {number} shaderType The type of shader, gl.VERTEX_SHADER or gl.FRAGMENT_SHADER.
    * @return {!WebGLShader} The shader.
@@ -50,7 +53,6 @@ window.L.glflet = (map) => {
   /**
    * Creates a program from 2 shaders.
    *
-   * @param {!WebGLRenderingContext) gl The WebGL context.
    * @param {!WebGLShader} vertexShader A vertex shader.
    * @param {!WebGLShader} fragmentShader A fragment shader.
    * @return {!WebGLProgram} A program.
@@ -68,10 +70,6 @@ window.L.glflet = (map) => {
     }
 
     gl.useProgram(program);
-
-    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-    gl.enable(gl.BLEND);
-    gl.disable(gl.DEPTH_TEST);
 
     return program;
   };
@@ -106,12 +104,26 @@ window.L.glflet = (map) => {
       compileShader(require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
     );
 
+    const handler = await require('./renderers/point-switch')(params, { gl, program });
+
+    layer.drawing(() => setup(handler.draw)).redraw();
+  }
+
+  async function point(params) {
+    if (!params) return;
+
+    const program = createProgram(
+      compileShader(require('./shaders/point.vertex.glsl'), gl.VERTEX_SHADER),
+      compileShader(require('./shaders/point.fragment.glsl'), gl.FRAGMENT_SHADER),
+    );
+
     const handler = await require('./renderers/point')(params, { gl, program });
 
     layer.drawing(() => setup(handler.draw)).redraw();
   }
 
   return Object.freeze({
+    point,
     pointSwitch,
   });
 }

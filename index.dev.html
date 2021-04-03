@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
     <script src="data/lightning.json" charset="utf-8"></script>
+    <script src="data/fire.json" charset="utf-8"></script>
 </head>
 <body>
   <div id="map"></div>
@@ -40,5 +41,12 @@
       },
       onClick: (data) => console.log(data),
     });
+
+    // glflet.point({
+    //   data: fireData,
+    //   icon: 'https://smac.climatempo.com.br/img/icons/fire.png',
+    //   onClick: (data) => console.log(data),
+    // });
+
   </script>
 </html>

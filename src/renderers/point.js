@@ -3,24 +3,16 @@
 const { getImageObj, makeTexture } = require('../utils');
 
 module.exports = async (params, { gl, program }) => {
-  const u_matLoc = gl.getUniformLocation(program, 'u_matrix');
-
-  const textureLocation0 = gl.getUniformLocation(program, 'u_texture_state_0');
-  const textureLocation1 = gl.getUniformLocation(program, 'u_texture_state_1');
-  const textureLocationdefault = gl.getUniformLocation(program, 'u_texture_state_default');
-
+  const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
+  const textureLocation = gl.getUniformLocation(program, 'u_texture');
   const vertLoc = gl.getAttribLocation(program, 'a_vertex');
-  const stateLoc = gl.getAttribLocation(program, 'a_state');
-
-  gl.aPointSize = gl.getAttribLocation(program, 'a_point_size');
+  const pointSizeLocation = gl.getAttribLocation(program, 'a_point_size');
 
   let verts = [];
 
   params.data.forEach((ld, i) => {
-    const pixel = leafletMap.project(new L.LatLng(ld.point[0], ld.point[1]), 0);
-    const state = ld.icon.includes('positive') ? 1 : 0;
-
-    verts.push(pixel.x, pixel.y, state);
+    const pixel = leafletMap.project(new L.LatLng(ld[0], ld[1]), 0);
+    verts.push(pixel.x, pixel.y);
   });
 
   const numPoints = params.data.length;
@@ -36,35 +28,18 @@ module.exports = async (params, { gl, program }) => {
 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
   gl.bufferData(gl.ARRAY_BUFFER, vertArray, gl.STATIC_DRAW);
-  gl.vertexAttribPointer(vertLoc, 2, gl.FLOAT, false, fsize*3, 0);
+  gl.vertexAttribPointer(vertLoc, 2, gl.FLOAT, false, fsize*2, 0);
   gl.enableVertexAttribArray(vertLoc);
-  gl.vertexAttribPointer(stateLoc, 1, gl.FLOAT, false, fsize*3, fsize*2);
-  gl.enableVertexAttribArray(stateLoc);
 
-  let textureIndex = 0;
-
-  for (let key in params.stateConditions) {
-    const sprite = await getImageObj(params.stateConditions[key]);
-
-    let texLoc = null;
-
-    if (key == 0) texLoc = textureLocation0;
-    else if (key == 1) texLoc = textureLocation1;
-    else texLoc = textureLocationdefault;
-
-    makeTexture(gl, texLoc, sprite, textureIndex);
-
-    textureIndex++;
-  }
+  makeTexture(gl, textureLocation, await getImageObj(params.icon), 0);
 
   return {
-    draw: (map, mapMatrix) => draw(gl, u_matLoc, map, mapMatrix, numPoints),
+    draw: (map, mapMatrix) => draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, numPoints),
   };
 };
 
-function draw(gl, matrixLocation, map, mapMatrix, count) {
-  const pointSize = Math.max(map.getZoom() + 5.0, 1.0);
-  gl.vertexAttrib1f(gl.aPointSize, pointSize);
+function draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, count) {
+  gl.vertexAttrib1f(pointSizeLocation, Math.max(map.getZoom() + 7.0, 1.0));
 
   // attach matrix value to uniform in shader
   gl.uniformMatrix4fv(matrixLocation, false, mapMatrix);
