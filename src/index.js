@@ -98,7 +98,7 @@ window.L.glflet = (map) => {
     if (callback) callback(map, mapMatrix);
   }
 
-  async function point(params) {
+  async function pointSwitch(params) {
     if (!params) return;
 
     const program = createProgram(
@@ -112,6 +112,6 @@ window.L.glflet = (map) => {
   }
 
   return Object.freeze({
-    point,
+    pointSwitch,
   });
 }

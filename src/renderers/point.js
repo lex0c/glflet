@@ -38,19 +38,24 @@ module.exports = async (params, { gl, program }) => {
   gl.bufferData(gl.ARRAY_BUFFER, vertArray, gl.STATIC_DRAW);
   gl.vertexAttribPointer(vertLoc, 2, gl.FLOAT, false, fsize*3, 0);
   gl.enableVertexAttribArray(vertLoc);
-
   gl.vertexAttribPointer(stateLoc, 1, gl.FLOAT, false, fsize*3, fsize*2);
   gl.enableVertexAttribArray(stateLoc);
 
-  const images = [
-    await getImageObj('https://smac.climatempo.com.br/img/icons/lightning-historic-negative.png'),
-    await getImageObj('https://smac.climatempo.com.br/img/icons/lightning-historic-positive.png'),
-    await getImageObj('https://smac.climatempo.com.br/img/icons/lightning.png'),
-  ];
+  let textureIndex = 0;
 
-  makeTexture(gl, textureLocation0, images[0], 0);
-  makeTexture(gl, textureLocation1, images[1], 1);
-  makeTexture(gl, textureLocationdefault, images[2], 2);
+  for (let key in params.stateConditions) {
+    const sprite = await getImageObj(params.stateConditions[key]);
+
+    let texLoc = null;
+
+    if (key == 0) texLoc = textureLocation0;
+    else if (key == 1) texLoc = textureLocation1;
+    else texLoc = textureLocationdefault;
+
+    makeTexture(gl, texLoc, sprite, textureIndex);
+
+    textureIndex++;
+  }
 
   return {
     draw: (map, mapMatrix) => draw(gl, u_matLoc, map, mapMatrix, numPoints),

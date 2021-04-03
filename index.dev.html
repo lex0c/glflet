@@ -1,14 +1,13 @@
 <!doctype html>
 <html>
 <head>
-  <title>Leaflet WebGL Renderer</title>
+  <title>Glflet - Leaflet WebGL Renderer</title>
   <meta charset="utf-8">
   <style>
     html, body {
       height: 100%;
       padding: 0;
       margin: 0;
-      background: rgb(14, 21, 30);
     }
     #map {
       position: absolute;
@@ -30,10 +29,16 @@
 
     L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
 
-    const glflet = L.glflet(leafletMap);
+    const glflet = new L.glflet(leafletMap);
 
-    glflet.point({
+    glflet.pointSwitch({
       data: lightningData,
+      stateConditions: {
+        0: 'https://smac.climatempo.com.br/img/icons/lightning-historic-negative.png',
+        1: 'https://smac.climatempo.com.br/img/icons/lightning-historic-positive.png',
+        default: 'https://smac.climatempo.com.br/img/icons/lightning.png',
+      },
+      onClick: (data) => console.log(data),
     });
   </script>
 </html>
