@@ -10,9 +10,8 @@ require('babel-polyfill');
 window.L.glflet = (map) => {
   require('./third-party/canvas-overlay');
 
-  const { compileShader, createProgram, latlngToPixel } = require('./utils');
+  const { latlngToPixel } = require('./utils');
   const m4 = require('./third-party/m4');
-  const { resizeCanvasToDisplaySize } = require('./third-party/webgl-utils');
 
   const layer = window.L.canvasOverlay().addTo(map);
 
@@ -21,16 +20,64 @@ window.L.glflet = (map) => {
   layer.canvas.width = canvas.clientWidth;
   layer.canvas.height = canvas.clientHeight;
 
-  var gl = canvas.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl2', { antialias: true, preserveDrawingBuffer: true });
 
   if (!gl) {
     console.error('WebGL2 not available');
   }
 
+  /**
+   * Creates and compiles a shader.
+   *
+   * @param {!WebGLRenderingContext} gl The WebGL Context.
+   * @param {string} shaderSource The GLSL source code for the shader.
+   * @param {number} shaderType The type of shader, gl.VERTEX_SHADER or gl.FRAGMENT_SHADER.
+   * @return {!WebGLShader} The shader.
+   */
+  function compileShader(source, type) {
+    const shader = gl.createShader(type);
+
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+      throw `Could not compile shader: ${gl.getShaderInfoLog(shader)}`;
+    }
+
+    return shader;
+  }
+
+  /**
+   * Creates a program from 2 shaders.
+   *
+   * @param {!WebGLRenderingContext) gl The WebGL context.
+   * @param {!WebGLShader} vertexShader A vertex shader.
+   * @param {!WebGLShader} fragmentShader A fragment shader.
+   * @return {!WebGLProgram} A program.
+   */
+  function createProgram(vertexShader, fragmentShader) {
+    const program = gl.createProgram();
+
+    gl.attachShader(program, vertexShader);
+    gl.attachShader(program, fragmentShader);
+
+    gl.linkProgram(program);
+
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        throw `Program failed to link: ${gl.getProgramInfoLog(program)}`;
+    }
+
+    gl.useProgram(program);
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    gl.disable(gl.DEPTH_TEST);
+
+    return program;
+  };
+
   function setup(callback) {
     if (gl == null) return;
-
-    resizeCanvasToDisplaySize(gl.canvas);
 
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -44,8 +91,7 @@ window.L.glflet = (map) => {
     const offset = latlngToPixel(topLeft.lat, topLeft.lng);
 
     // scale to current zoom
-    const scale = Math.pow(2, map.getZoom());
-    mapMatrix = m4.scale(mapMatrix, scale, scale, 1);
+    mapMatrix = m4.scale(mapMatrix, Math.pow(2, map.getZoom()), 1);
 
     mapMatrix = m4.translate(mapMatrix, -offset.x, -offset.y, 0);
 
@@ -56,9 +102,8 @@ window.L.glflet = (map) => {
     if (!params) return;
 
     const program = createProgram(
-      gl,
-      compileShader(gl, require('./shaders/point-state.vertex.glsl'), gl.VERTEX_SHADER),
-      compileShader(gl, require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
+      compileShader(require('./shaders/point-state.vertex.glsl'), gl.VERTEX_SHADER),
+      compileShader(require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
     );
 
     const handler = await require('./renderers/point')(params, { gl, program });
