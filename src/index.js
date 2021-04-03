@@ -4,17 +4,19 @@ if (!window || !window.L) {
   throw new Error('Leaflet not found.');
 }
 
-//require('@babel/polyfill');
+require('babel-core/register');
+require('babel-polyfill');
 
-window.L.glflet = (map) {
+window.L.glflet = (map) => {
   require('./third-party/canvas-overlay');
 
   const { compileShader, createProgram, latlngToPixel } = require('./utils');
-  const { orthographic, scale, translate } = require('./third-party/m4');
+  const m4 = require('./third-party/m4');
+  const { resizeCanvasToDisplaySize } = require('./third-party/webgl-utils');
 
   const layer = window.L.canvasOverlay().addTo(map);
 
-  const canvas = glLayer.canvas();
+  const canvas = layer.canvas();
 
   layer.canvas.width = canvas.clientWidth;
   layer.canvas.height = canvas.clientHeight;
@@ -35,33 +37,33 @@ window.L.glflet = (map) {
     gl.viewport(0, 0, canvas.width, canvas.height);
 
     // set base matrix to translate canvas pixel coordinates to webgl coordinates
-    let mapMatrix = orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
+    let mapMatrix = m4.orthographic(0, gl.canvas.width, gl.canvas.height, 0, -1, 1);
 
-    const bounds = leafletMap.getBounds();
+    const bounds = map.getBounds();
     const topLeft = new window.L.LatLng(bounds.getNorth(), bounds.getWest());
     const offset = latlngToPixel(topLeft.lat, topLeft.lng);
 
     // scale to current zoom
-    const scale = Math.pow(2, leafletMap.getZoom());
-    mapMatrix = scale(mapMatrix, scale, scale, 1);
+    const scale = Math.pow(2, map.getZoom());
+    mapMatrix = m4.scale(mapMatrix, scale, scale, 1);
 
-    mapMatrix = translate(mapMatrix, -offset.x, -offset.y, 0);
+    mapMatrix = m4.translate(mapMatrix, -offset.x, -offset.y, 0);
 
-    if (callback) callback(mapMatrix);
+    if (callback) callback(map, mapMatrix);
   }
 
-  function point(params) {
+  async function point(params) {
     if (!params) return;
 
     const program = createProgram(
-      compileShader(require('./shaders/point-state.vertex.glsl'), gl.VERTEX_SHADER),
-      compileShader(require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
+      gl,
+      compileShader(gl, require('./shaders/point-state.vertex.glsl'), gl.VERTEX_SHADER),
+      compileShader(gl, require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
     );
 
-    const handler = await pointRender(params, { gl, program, map });
+    const handler = await require('./renderers/point')(params, { gl, program });
 
-    layer.drawing(() => setup(handler.draw));
-    layer.redraw();
+    layer.drawing(() => setup(handler.draw)).redraw();
   }
 
   return Object.freeze({

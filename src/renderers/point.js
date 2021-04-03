@@ -2,7 +2,7 @@
 
 const { getImageObj, makeTexture } = require('../utils');
 
-module.exports = async (params, { gl, program, map }) => {
+module.exports = async (params, { gl, program }) => {
   const u_matLoc = gl.getUniformLocation(program, 'u_matrix');
 
   const textureLocation0 = gl.getUniformLocation(program, 'u_texture_state_0');
@@ -53,8 +53,7 @@ module.exports = async (params, { gl, program, map }) => {
   makeTexture(gl, textureLocationdefault, images[2], 2);
 
   return {
-    draw: (mapMatrix) => draw(gl, u_matLoc, map, mapMatrix, numPoints),
-    onClick: () => null,
+    draw: (map, mapMatrix) => draw(gl, u_matLoc, map, mapMatrix, numPoints),
   };
 };
 

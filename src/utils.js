@@ -20,7 +20,7 @@ function getImageObj(url) {
 /**
  * copy image into the texture
  */
-function makeTexture(gl, texturetLocation, sprite, index) {
+function makeTexture(gl, textureLocation, sprite, index) {
   const texture = gl.createTexture();
 
   gl.activeTexture(gl.TEXTURE0 + index);
@@ -43,12 +43,15 @@ function makeTexture(gl, texturetLocation, sprite, index) {
  * reference: http://build-failed.blogspot.cz/2013/02/displaying-webgl-data-on-google-maps.html
  */
 function latlngToPixel(latitude, longitude) {
-  const sinLatitude = Math.sin(latitude * (Math.PI / 180.0));
+  const pi_180 = Math.PI / 180.0;
+  const pi_4 = Math.PI * 4;
+  const sinLatitude = Math.sin(latitude * pi_180);
+  const pixelY = (0.5 - Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (pi_4)) * 256;
+  const pixelX = ((longitude + 180) / 360) * 256;
 
-  return {
-    x: (0.5 - Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (Math.PI * 4)) * 256,
-    y: ((longitude + 180) / 360) * 256,
-  };
+  const pixel = { x: pixelX, y: pixelY };
+
+  return pixel;
 }
 
 /**
