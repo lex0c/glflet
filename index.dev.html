@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <title>Leaflet WebGL Renderer</title>
+  <meta charset="utf-8">
+  <style>
+    html, body {
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      background: rgb(14, 21, 30);
+    }
+    #map {
+      position: absolute;
+      height: 100%;
+      width: 100%;
+      background-color: #333;
+    }
+  </style>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
+    <script src="data/lightning.json" charset="utf-8"></script>
+</head>
+<body>
+  <div id="map"></div>
+</body>
+  <script src="dist/leaflet-webgl-renderer.js"></script>
+  <script>
+    const leafletMap = L.map('map').setView([-23.550520, -46.633309], 5);
+
+    L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
+
+    const glflet = L.glflet(leafletMap);
+
+    glflet.point({
+      data: lightningData,
+    });
+  </script>
+</html>
