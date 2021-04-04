@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "parcel build src/index.js --out-file glflet.js --target browser"
+    "build": "parcel build src/index.js --out-file glflet.js --target browser",
+    "start": "http-server"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "babel-core": "^6.0.20",
     "babel-polyfill": "^6.0.16",
+    "http-server": "^0.12.3",
     "parcel": "1.12.3",
     "parcel-bundler": "1.12.3",
     "parcel-plugin-glsl": "0.1.0"

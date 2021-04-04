@@ -24,29 +24,28 @@
 <body>
   <div id="map"></div>
 </body>
+  <script src="src/third-party/canvas-overlay.js"></script>
   <script src="dist/glflet.js"></script>
   <script>
     const leafletMap = L.map('map').setView([-23.550520, -46.633309], 5);
 
     L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
 
-    const glflet = new L.glflet(leafletMap);
-
-    glflet.pointSwitch({
+    new L.glflet(leafletMap).pointSwitch({
       data: lightningData,
       stateConditions: {
-        0: 'https://smac.climatempo.com.br/img/icons/lightning-historic-negative.png',
-        1: 'https://smac.climatempo.com.br/img/icons/lightning-historic-positive.png',
-        default: 'https://smac.climatempo.com.br/img/icons/lightning.png',
+        0: 'assets/icons/lightning-negative.png',
+        1: 'assets/icons/lightning-positive.png',
+        default: 'assets/icons/lightning.png',
       },
       onClick: (data) => console.log(data),
     });
 
-    // glflet.point({
-    //   data: fireData,
-    //   icon: 'https://smac.climatempo.com.br/img/icons/fire.png',
-    //   onClick: (data) => console.log(data),
-    // });
+    new L.glflet(leafletMap).point({
+      data: fireData,
+      icon: 'assets/icons/fire.png',
+      onClick: (data) => console.log(data),
+    });
 
   </script>
 </html>
