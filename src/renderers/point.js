@@ -39,7 +39,7 @@ module.exports = async (params, { gl, program }) => {
 };
 
 function draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, count) {
-  gl.vertexAttrib1f(pointSizeLocation, Math.max(map.getZoom() + 7.0, 1.0));
+  gl.vertexAttrib1f(pointSizeLocation, Math.max(map.getZoom() + 5.0, 1.0));
 
   // attach matrix value to uniform in shader
   gl.uniformMatrix4fv(matrixLocation, false, mapMatrix);

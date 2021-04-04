@@ -19,7 +19,7 @@ L.CanvasOverlay = L.Class.extend({
     this._userDrawFunc = userDrawFunc;
     return this;
   },
-  params:function(options) {
+  params: function(options) {
     L.setOptions(this, options);
     return this;
   },
@@ -35,25 +35,32 @@ L.CanvasOverlay = L.Class.extend({
   },
   onAdd: function (map) {
     this._map = map;
-    this._canvas = L.DomUtil.create('canvas', 'leaflet-heatmap-layer');
+    this._canvas = window.document.createElement('canvas');
 
     const size = this._map.getSize();
+    const isAnimated = map.options.zoomAnimation && L.Browser.any3d;
+
     this._canvas.width = size.x;
     this._canvas.height = size.y;
+    this._canvas.className = `leaflet-zoom-${isAnimated ? 'animated' : 'hide'}`;
+    this._canvas.style.position = 'absolute';
+    this._canvas.style.top = 0;
+    this._canvas.style.left = 0;
 
     const animated = this._map.options.zoomAnimation && L.Browser.any3d;
-    L.DomUtil.addClass(this._canvas, 'leaflet-zoom-' + (animated ? 'animated' : 'hide'));
 
     map._panes.overlayPane.appendChild(this._canvas);
 
     map.on('moveend', this._reset, this);
     map.on('resize',  this._resize, this);
 
-    if (map.options.zoomAnimation && L.Browser.any3d) {
+    if (isAnimated) {
       map.on('zoomanim', this._animateZoom, this);
     }
 
     this._reset();
+
+    return this;
   },
   onRemove: function (map) {
     map.getPanes().overlayPane.removeChild(this._canvas);

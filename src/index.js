@@ -20,15 +20,15 @@ window.L.glflet = (map) => {
   layer.canvas.width = canvas.clientWidth;
   layer.canvas.height = canvas.clientHeight;
 
-  const gl = canvas.getContext('webgl2', { preserveDrawingBuffer: true });
+  const gl = canvas.getContext('webgl2', {
+    antialias: false,
+    depth: false,
+    preserveDrawingBuffer: true,
+  });
 
   if (!gl) {
     console.error('WebGL2 not available');
   }
-
-  gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-  gl.enable(gl.BLEND);
-  //gl.disable(gl.DEPTH_TEST);
 
   /**
    * Creates and compiles a shader.
@@ -66,10 +66,14 @@ window.L.glflet = (map) => {
     gl.linkProgram(program);
 
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        throw `Program failed to link: ${gl.getProgramInfoLog(program)}`;
+      throw `Program failed to link: ${gl.getProgramInfoLog(program)}`;
     }
 
     gl.useProgram(program);
+
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.enable(gl.BLEND);
+    //gl.disable(gl.DEPTH_TEST);
 
     return program;
   };
