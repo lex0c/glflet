@@ -111,6 +111,11 @@ window.L.glflet = (map) => {
     const handler = await require('./renderers/point-switch')(params, { gl, program });
 
     layer.drawing(() => setup(handler.draw)).redraw();
+
+    return {
+      onClick: (callback) => handler.onClick(map, callback),
+      refresh: () => layer.redraw(),
+    };
   }
 
   async function point(params) {
@@ -124,6 +129,11 @@ window.L.glflet = (map) => {
     const handler = await require('./renderers/point')(params, { gl, program });
 
     layer.drawing(() => setup(handler.draw)).redraw();
+
+    return {
+      onClick: (callback) => handler.onClick(map, callback),
+      refresh: () => layer.redraw(),
+    };
   }
 
   return Object.freeze({

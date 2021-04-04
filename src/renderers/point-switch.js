@@ -28,10 +28,6 @@ module.exports = async (params, { gl, program }) => {
   const vertArray = new Float32Array(verts);
   const fsize = vertArray.BYTES_PER_ELEMENT;
 
-  // free memory
-  verts = [];
-  // -----------------
-
   const vertBuffer = gl.createBuffer();
 
   gl.bindBuffer(gl.ARRAY_BUFFER, vertBuffer);
@@ -59,6 +55,7 @@ module.exports = async (params, { gl, program }) => {
 
   return {
     draw: (map, mapMatrix) => draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, numPoints),
+    onClick: (map, callback) => onClick(map, verts, callback),
   };
 };
 
@@ -69,4 +66,10 @@ function draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, count) {
   gl.uniformMatrix4fv(matrixLocation, false, mapMatrix);
 
   gl.drawArrays(gl.POINTS, 0, count);
+}
+
+function onClick(map, verts, callback) {
+  map.on('click', (event) => {
+    if (callback) callback(event.latlng);
+  });
 }

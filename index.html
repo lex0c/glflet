@@ -17,34 +17,37 @@
     }
   </style>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
-  <script src="data/lightning.json" charset="utf-8"></script>
-  <script src="data/fire.json" charset="utf-8"></script>
 </head>
 <body>
   <div id="map"></div>
 </body>
+  <script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
+  <script src="data/lightning.json" charset="utf-8"></script>
+  <script src="data/fire.json" charset="utf-8"></script>
   <script src="dist/glflet.js"></script>
   <script>
     const leafletMap = L.map('map').setView([-23.550520, -46.633309], 5);
 
     L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
 
-    new L.glflet(leafletMap).pointSwitch({
-      data: lightningData,
-      stateConditions: {
-        0: 'assets/icons/lightning-negative.png',
-        1: 'assets/icons/lightning-positive.png',
-        default: 'assets/icons/lightning.png',
-      },
-      onClick: (data) => console.log(data),
-    });
+    async function init () {
 
-    new L.glflet(leafletMap).point({
-      data: fireData,
-      icon: 'assets/icons/fire.png',
-      onClick: (data) => console.log(data),
-    });
+      (await (new L.glflet(leafletMap)).pointSwitch({
+        data: lightningData,
+        stateConditions: {
+          0: 'assets/icons/lightning-negative.png',
+          1: 'assets/icons/lightning-positive.png',
+          default: 'assets/icons/lightning.png',
+        },
+      })).onClick(console.log);
 
+      new L.glflet(leafletMap).point({
+        data: fireData,
+        icon: 'assets/icons/fire.png',
+      });
+
+    }
+
+    init();
   </script>
 </html>
