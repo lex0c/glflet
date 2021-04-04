@@ -17,8 +17,8 @@ module.exports = async (params, { gl, program }) => {
   let verts = [];
 
   params.data.forEach((ld, i) => {
-    const pixel = leafletMap.project(new L.LatLng(ld.point[0], ld.point[1]), 0);
-    const state = ld.icon.includes('positive') ? 1 : 0;
+    const pixel = leafletMap.project(new L.LatLng(ld[0], ld[1]), 0);
+    const state = ld[2];
 
     verts.push(pixel.x, pixel.y, state);
   });
