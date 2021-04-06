@@ -7,6 +7,10 @@ if (!window || !window.L) {
 require('babel-core/register');
 require('babel-polyfill');
 
+const { TYPES } = require('./constants');
+
+window.L.glfletTypes = Object.freeze(TYPES);
+
 window.L.glflet = (map) => {
   require('./third-party/canvas-overlay');
 
@@ -91,15 +95,35 @@ window.L.glflet = (map) => {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   }
 
-  async function pointSwitch(params) {
+  async function render(params) {
     if (!params) return;
 
+    let renderer = null;
+    let vertexSource = null;
+    let fragmentSource = null;
+
+    switch (params.type) {
+      case TYPES.POINT:
+        renderer = require('./renderers/point');
+        vertexSource = require('./shaders/point.vertex.glsl');
+        fragmentSource = require('./shaders/point.fragment.glsl');
+        break;
+      case TYPES.POINT_SWITCH:
+        renderer = require('./renderers/point-switch');
+        vertexSource = require('./shaders/point-switch.vertex.glsl');
+        fragmentSource = require('./shaders/point-switch.fragment.glsl');
+        break;
+      default:
+        throw new Error(`Unsupported type: ${params.type}.`);
+        return;
+    }
+
     const program = createProgram(
-      compileShader(require('./shaders/point-state.vertex.glsl'), gl.VERTEX_SHADER),
-      compileShader(require('./shaders/point-state.fragment.glsl'), gl.FRAGMENT_SHADER),
+      compileShader(vertexSource, gl.VERTEX_SHADER),
+      compileShader(fragmentSource, gl.FRAGMENT_SHADER),
     );
 
-    const handler = await require('./renderers/point-switch')(params, { gl, program });
+    const handler = await renderer(params, { gl, program });
 
     layer.drawing(() => setup(handler.draw)).redraw();
 
@@ -109,26 +133,5 @@ window.L.glflet = (map) => {
     };
   }
 
-  async function point(params) {
-    if (!params) return;
-
-    const program = createProgram(
-      compileShader(require('./shaders/point.vertex.glsl'), gl.VERTEX_SHADER),
-      compileShader(require('./shaders/point.fragment.glsl'), gl.FRAGMENT_SHADER),
-    );
-
-    const handler = await require('./renderers/point')(params, { gl, program });
-
-    layer.drawing(() => setup(handler.draw)).redraw();
-
-    return {
-      onClick: (callback) => handler.onClick(map, callback),
-      destroy: () => destroy(),
-    };
-  }
-
-  return Object.freeze({
-    point,
-    pointSwitch,
-  });
+  return Object.freeze({ render });
 }

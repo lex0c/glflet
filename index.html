@@ -30,18 +30,20 @@
 
     L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
 
-    new L.glflet(leafletMap).pointSwitch({
+    new L.glflet(leafletMap).render({
       data: lightningData,
       stateConditions: {
         0: 'assets/icons/lightning-negative.png',
         1: 'assets/icons/lightning-positive.png',
         default: 'assets/icons/lightning.png',
       },
+      type: L.glfletTypes.POINT_SWITCH,
     }).then(handler => handler.onClick(console.log));
 
-    new L.glflet(leafletMap).point({
+    new L.glflet(leafletMap).render({
       data: fireData,
       icon: 'assets/icons/fire.png',
+      type: L.glfletTypes.POINT,
     }).then(handler => handler.onClick(console.log));
 
   </script>
