@@ -51,8 +51,19 @@ function latlngToPixel(latitude, longitude) {
   };
 }
 
+function formatCoords(lat, lng) {
+  return { lat: Number(lat).toFixed(2), lng: Number(lng).toFixed(2) };
+}
+
+function coordsToKey(lat, lng) {
+  const latlng = formatCoords(lat, lng);
+  return `${latlng.lat}x${latlng.lng}`;
+}
+
 module.exports = {
   getImageObj,
   makeTexture,
   latlngToPixel,
+  formatCoords,
+  coordsToKey,
 };

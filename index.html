@@ -30,24 +30,19 @@
 
     L.tileLayer('https:////{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(leafletMap);
 
-    async function init () {
+    new L.glflet(leafletMap).pointSwitch({
+      data: lightningData,
+      stateConditions: {
+        0: 'assets/icons/lightning-negative.png',
+        1: 'assets/icons/lightning-positive.png',
+        default: 'assets/icons/lightning.png',
+      },
+    }).then(handler => handler.onClick(console.log));
 
-      (await (new L.glflet(leafletMap)).pointSwitch({
-        data: lightningData,
-        stateConditions: {
-          0: 'assets/icons/lightning-negative.png',
-          1: 'assets/icons/lightning-positive.png',
-          default: 'assets/icons/lightning.png',
-        },
-      })).onClick(console.log);
+    new L.glflet(leafletMap).point({
+      data: fireData,
+      icon: 'assets/icons/fire.png',
+    }).then(handler => handler.onClick(console.log));
 
-      new L.glflet(leafletMap).point({
-        data: fireData,
-        icon: 'assets/icons/fire.png',
-      });
-
-    }
-
-    init();
   </script>
 </html>

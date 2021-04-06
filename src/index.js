@@ -30,13 +30,6 @@ window.L.glflet = (map) => {
     console.error('WebGL2 not available');
   }
 
-  /**
-   * Creates and compiles a shader.
-   *
-   * @param {string} shaderSource The GLSL source code for the shader.
-   * @param {number} shaderType The type of shader, gl.VERTEX_SHADER or gl.FRAGMENT_SHADER.
-   * @return {!WebGLShader} The shader.
-   */
   function compileShader(source, type) {
     const shader = gl.createShader(type);
 
@@ -50,13 +43,6 @@ window.L.glflet = (map) => {
     return shader;
   }
 
-  /**
-   * Creates a program from 2 shaders.
-   *
-   * @param {!WebGLShader} vertexShader A vertex shader.
-   * @param {!WebGLShader} fragmentShader A fragment shader.
-   * @return {!WebGLProgram} A program.
-   */
   function createProgram(vertexShader, fragmentShader) {
     const program = gl.createProgram();
 
@@ -100,6 +86,11 @@ window.L.glflet = (map) => {
     if (callback) callback(map, mapMatrix);
   }
 
+  function destroy() {
+    canvas.remove();
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  }
+
   async function pointSwitch(params) {
     if (!params) return;
 
@@ -114,7 +105,7 @@ window.L.glflet = (map) => {
 
     return {
       onClick: (callback) => handler.onClick(map, callback),
-      refresh: () => layer.redraw(),
+      destroy: () => destroy(),
     };
   }
 
@@ -132,7 +123,7 @@ window.L.glflet = (map) => {
 
     return {
       onClick: (callback) => handler.onClick(map, callback),
-      refresh: () => layer.redraw(),
+      destroy: () => destroy(),
     };
   }
 
