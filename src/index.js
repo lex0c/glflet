@@ -123,7 +123,7 @@ window.L.glflet = (map) => {
       compileShader(fragmentSource, gl.FRAGMENT_SHADER),
     );
 
-    const handler = await renderer(params, { gl, program });
+    const handler = await renderer(Object.freeze(params), { gl, program });
 
     layer.drawing(() => setup(handler.draw)).redraw();
 
