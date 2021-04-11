@@ -11,21 +11,17 @@ module.exports = async (params, { gl, program }) => {
   let verts = [];
   const lookups = [];
 
-  params.data.forEach((ld, i) => {
-    const pixel = leafletMap.project(new L.LatLng(ld[0], ld[1]), 0);
+  params.data.forEach((coord, i) => {
+    const pixel = leafletMap.project(new L.LatLng(coord[0], coord[1]), 0);
 
     verts.push(pixel.x, pixel.y);
-    lookups.push({ index: i, ...formatXYPoint(ld[0], ld[1]) });
+    lookups.push({ index: i, ...formatXYPoint(coord[0], coord[1]) });
   });
 
   const numPoints = params.data.length;
 
-  const vertArray = new Float32Array(verts);
+  let vertArray = new Float32Array(verts);
   const fsize = vertArray.BYTES_PER_ELEMENT;
-
-  // free memory
-  verts = [];
-  // ----------
 
   const vertBuffer = gl.createBuffer();
 
@@ -35,6 +31,11 @@ module.exports = async (params, { gl, program }) => {
   gl.enableVertexAttribArray(vertLoc);
 
   makeTexture(gl, textureLocation, await getImageObj(params.icon), 0);
+
+  // free memory
+  verts = [];
+  vertArray = [];
+  // ----------
 
   return {
     draw: (map, mapMatrix) => draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, numPoints),

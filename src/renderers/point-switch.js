@@ -17,20 +17,18 @@ module.exports = async (params, { gl, program }) => {
   let verts = [];
   const lookups = [];
 
-  params.data.forEach((ld, i) => {
-    const pixel = leafletMap.project(new L.LatLng(ld[0], ld[1]), 0);
-    verts.push(pixel.x, pixel.y, ld[2]);
-    lookups.push({ index: i, ...formatXYPoint(ld[0], ld[1]) });
+  params.data.forEach((coord, i) => {
+    const pixel = leafletMap.project(new L.LatLng(coord[0], coord[1]), 0);
+
+    verts.push(pixel.x, pixel.y, coord[2]); // coord[2] >> texture state
+
+    lookups.push({ index: i, ...formatXYPoint(coord[0], coord[1]) });
   });
 
   const numPoints = params.data.length;
 
-  const vertArray = new Float32Array(verts);
+  let vertArray = new Float32Array(verts);
   const fsize = vertArray.BYTES_PER_ELEMENT;
-
-  // free memory
-  verts = [];
-  // ----------
 
   const vertBuffer = gl.createBuffer();
 
@@ -38,24 +36,33 @@ module.exports = async (params, { gl, program }) => {
   gl.bufferData(gl.ARRAY_BUFFER, vertArray, gl.STATIC_DRAW);
   gl.vertexAttribPointer(vertLoc, 2, gl.FLOAT, false, fsize*3, 0);
   gl.enableVertexAttribArray(vertLoc);
+
+  // attach texture state
   gl.vertexAttribPointer(stateLoc, 1, gl.FLOAT, false, fsize*3, fsize*2);
   gl.enableVertexAttribArray(stateLoc);
 
-  let textureIndex = 0;
+  if (params.stateConditions) {
+    let textureIndex = 0;
 
-  for (let key in params.stateConditions) {
-    const sprite = await getImageObj(params.stateConditions[key]);
+    for (let key in params.stateConditions) {
+      const sprite = await getImageObj(params.stateConditions[key]);
 
-    let texLoc = null;
+      let texLoc = null;
 
-    if (key == 0) texLoc = textureLocation0;
-    else if (key == 1) texLoc = textureLocation1;
-    else texLoc = textureLocationDefault;
+      if (key == 0) texLoc = textureLocation0;
+      else if (key == 1) texLoc = textureLocation1;
+      else texLoc = textureLocationDefault;
 
-    makeTexture(gl, texLoc, sprite, textureIndex);
+      makeTexture(gl, texLoc, sprite, textureIndex);
 
-    textureIndex++;
+      textureIndex++;
+    }
   }
+
+  // free memory
+  verts = [];
+  vertArray = [];
+  // ----------
 
   return {
     draw: (map, mapMatrix) => draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, numPoints),
