@@ -42,11 +42,11 @@ function makeTexture(gl, textureLocation, sprite, index) {
  * converts lat/lng to pixel
  * reference: http://build-failed.blogspot.cz/2013/02/displaying-webgl-data-on-google-maps.html
  */
-function latlngToPixel(latitude, longitude) {
-  const sinLatitude = Math.sin(latitude * (Math.PI / 180.0));
+function latlngToPixel(lat, lng) {
+  const sinLatitude = Math.sin(lat * (Math.PI / 180.0));
 
   return {
-    x: ((longitude + 180) / 360) * 256,
+    x: ((lng + 180) / 360) * 256,
     y: (0.5 - Math.log((1 + sinLatitude) / (1 - sinLatitude)) / (Math.PI * 4)) * 256,
   };
 }
@@ -55,9 +55,9 @@ function formatCoords(lat, lng) {
   return { lat: Number(lat).toFixed(2), lng: Number(lng).toFixed(2) };
 }
 
-function coordsToKey(lat, lng) {
+function formatXYPoint(lat, lng) {
   const latlng = formatCoords(lat, lng);
-  return `${latlng.lat}x${latlng.lng}`;
+  return latlngToPixel(latlng.lat, latlng.lng);
 }
 
 module.exports = {
@@ -65,5 +65,5 @@ module.exports = {
   makeTexture,
   latlngToPixel,
   formatCoords,
-  coordsToKey,
+  formatXYPoint,
 };

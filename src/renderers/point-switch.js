@@ -1,6 +1,6 @@
 'use strict';
 
-const { getImageObj, makeTexture } = require('../utils');
+const { getImageObj, makeTexture, formatXYPoint } = require('../utils');
 
 module.exports = async (params, { gl, program }) => {
   const matrixLocation = gl.getUniformLocation(program, 'u_matrix');
@@ -15,18 +15,22 @@ module.exports = async (params, { gl, program }) => {
   const pointSizeLocation = gl.getAttribLocation(program, 'a_point_size');
 
   let verts = [];
+  const lookups = [];
 
   params.data.forEach((ld, i) => {
     const pixel = leafletMap.project(new L.LatLng(ld[0], ld[1]), 0);
-    const state = ld[2];
-
-    verts.push(pixel.x, pixel.y, state);
+    verts.push(pixel.x, pixel.y, ld[2]);
+    lookups.push({ index: i, ...formatXYPoint(ld[0], ld[1]) });
   });
 
   const numPoints = params.data.length;
 
   const vertArray = new Float32Array(verts);
   const fsize = vertArray.BYTES_PER_ELEMENT;
+
+  // free memory
+  verts = [];
+  // ----------
 
   const vertBuffer = gl.createBuffer();
 
@@ -55,7 +59,7 @@ module.exports = async (params, { gl, program }) => {
 
   return {
     draw: (map, mapMatrix) => draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, numPoints),
-    onClick: (map, callback) => onClick(map, verts, callback),
+    onClick: (map, callback) => onClick(map, lookups, callback),
   };
 };
 
@@ -68,8 +72,12 @@ function draw(gl, matrixLocation, pointSizeLocation, map, mapMatrix, count) {
   gl.drawArrays(gl.POINTS, 0, count);
 }
 
-function onClick(map, verts, callback) {
+function onClick(map, lookups, callback) {
   map.on('click', (event) => {
-    if (callback) callback(event.latlng);
+    if (callback) {
+      const latlng = formatXYPoint(event.latlng.lat, event.latlng.lng);
+      const pointer = lookups.find(look => ((look.x === latlng.x) && (look.y === latlng.y)));
+      if (pointer) callback(pointer.index);
+    }
   });
 }
